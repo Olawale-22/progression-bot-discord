@@ -66,7 +66,13 @@ pip install discord.py python-dotenv notion-client
 ```bash
 python bot.py
 ```
-
+3. Since bot is running on the server all admin has to do when intending to start and stop bot respectively:
+```bash
+/start
+```
+```bash
+/stop
+```
 ## Features
 
 - **Daily Updates**: Bot automatically sends DMs to channel members

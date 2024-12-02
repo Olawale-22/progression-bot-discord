@@ -1,11 +1,11 @@
 import discord
+from discord import app_commands
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
 import os
 from datetime import datetime
 from models import add_response_to_notion
 
-# Force reload of .env file
 load_dotenv(override=True)
 
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
@@ -13,7 +13,6 @@ CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 
 print(f"Using Channel ID: {CHANNEL_ID}")
 
-# Enable all required intents
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -21,8 +20,45 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user}')
     print(f'Bot intents: {bot.intents}')
+    # Sync slash commands
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s)")
+    except Exception as e:
+        print(f"Failed to sync commands: {e}")
     await bot.wait_until_ready()
+
+# Admin slash commands
+@bot.tree.command(name="start", description="Start daily updates (Admin only)")
+@app_commands.default_permissions(administrator=True)
+async def start(interaction: discord.Interaction):
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("You need administrator permissions.", ephemeral=True)
+        return
+    
     send_daily_message.start()
+    await interaction.response.send_message("Daily updates started!", ephemeral=True)
+
+@bot.tree.command(name="stop", description="Stop daily updates (Admin only)")
+@app_commands.default_permissions(administrator=True)
+async def stop(interaction: discord.Interaction):
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("You need administrator permissions.", ephemeral=True)
+        return
+    
+    send_daily_message.cancel()
+    await interaction.response.send_message("Daily updates stopped!", ephemeral=True)
+
+@bot.tree.command(name="status", description="Check bot status (Admin only)")
+@app_commands.default_permissions(administrator=True)
+async def status(interaction: discord.Interaction):
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("You need administrator permissions.", ephemeral=True)
+        return
+    
+    is_running = send_daily_message.is_running()
+    status_msg = "Bot is currently sending daily updates" if is_running else "Bot is not sending daily updates"
+    await interaction.response.send_message(status_msg, ephemeral=True)
 
 @tasks.loop(hours=24)
 async def send_daily_message():
@@ -32,15 +68,12 @@ async def send_daily_message():
             print(f"Channel with ID {CHANNEL_ID} not found.")
             return
 
-        guild = channel.guild
-        print(f"Guild name: {guild.name}")
-        print(f"Total guild members before chunk: {len(guild.members)}")
-        
-        await guild.chunk()
-        print(f"Total guild members after chunk: {len(guild.members)}")
+        # Get channel-specific members
+        channel_members = channel.members
+        print(f"Total channel members: {len(channel_members)}")
         
         members = []
-        for member in guild.members:
+        for member in channel_members:
             if member.bot:
                 print(f"Skipping bot: {member.name}")
                 continue
@@ -51,7 +84,7 @@ async def send_daily_message():
                 continue
                 
             members.append(member)
-            print(f"Added member: {member.name}")
+            print(f"Added channel member: {member.name}")
 
         if not members:
             print(f"No valid members found in channel {CHANNEL_ID}")
@@ -79,7 +112,6 @@ async def on_message(message):
             user = message.author.name
             response = message.content
             
-            # Using updated add_response_to_notion function
             add_response_to_notion(user, response)
             
             await message.channel.send("Response recorded, thank you!")
