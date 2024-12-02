@@ -1,8 +1,15 @@
 from notion_client import Client
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+# Add debug logging
+print(f"Environment variables loaded: {list(os.environ.keys())}")
 
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
+print(f"NOTION_TOKEN value: {'Found' if NOTION_TOKEN else 'Missing'}")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 
 notion = Client(auth=NOTION_TOKEN)
@@ -22,6 +29,7 @@ def add_response_to_notion(user, response):
             }
         }
     )
+
     # First, ensure the message column exists
     try:
         database = notion.databases.retrieve(database_id=DATABASE_ID)

@@ -22,27 +22,29 @@ A Discord bot that sends daily update requests to channel members and stores the
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd progression-bot-discord
+cd progression-bot
 ```
 
-2. Create virtual environment:
-```bash
-python -m venv .venv
-.\.venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install discord.py python-dotenv notion-client
-```
-
-4. Create `.env` file:
+2. Create `.env` file:
 ```properties
 DISCORD_BOT_TOKEN=your_discord_bot_token
 CHANNEL_ID=your_channel_id
 NOTION_TOKEN=your_notion_integration_token
 NOTION_DATABASE_ID=your_database_id
 ```
+
+
+3. Create virtual environment:
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+```
+
+4. Install dependencies:
+```bash
+pip install discord.py python-dotenv notion-client
+```
+
 
 ## Notion Setup
 
@@ -89,6 +91,17 @@ discord-progress-bot/
 - `CHANNEL_ID`: Target Discord channel ID
 - `NOTION_TOKEN`: Notion integration token
 - `NOTION_DATABASE_ID`: Notion database ID
+
+
+## Demo
+
+If everything works fine you get something these:
+1. On the terminal for debug purposes, it prints out the number of users in the channel and their activity status with the bot
+![Bot Activity Diagram](./readimg/Capture%20d’écran%20(5).png)
+2. Notions Database
+![Notion Database Diagram](./readimg/Capture%20d’écran%20(6).png)
+
+
 
 ## Contributing
 
